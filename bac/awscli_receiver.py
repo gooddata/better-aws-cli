@@ -44,12 +44,13 @@ class AwsCliReceiver(object):
         dropped_vars = list()
         for variable in IGNORED_ENV_VARS:
             if variable in self._env:
-                var = self._env.pop(variable)
-                dropped_vars.append(var)
+                self._env.pop(variable)
+                dropped_vars.append(variable)
 
         if dropped_vars:
-            log.debug('Dropping following enviromental'
-                      ' variables: %s' % dropped_vars)
+            log.warning('Environmental variables are currently not'
+                        ' supported. Dropping following environmental'
+                        ' variables: %s' % dropped_vars)
 
     def execute_awscli_command(self, command, args):
         """
@@ -145,12 +146,18 @@ class AwsCliReceiver(object):
         try:
             filtered = self._filter(regions, command, profile)
         except ClientError as e:
-            log.warning('Region filtering is not supported for "%s"'
+            if 'UnauthorizedOperation' in str(e):
+                log.warning(
+                        'Region filtering is not supported for "%s"'
                         ' profile. This is most probably caused by'
-                        ' insufficient privileges. Continuing with all'
-                        ' active regions.' % profile)
-            log.debug('Following error received when'
-                      ' filtering regions: %s' % str(e))
+                        ' insufficient privileges. Continuing with'
+                        ' all active regions.' % profile
+                        )
+                log.debug('Following error received when'
+                          ' filtering regions: %s' % str(e))
+            else:
+                log.warning('An error occured while filtering available'
+                            ' regions: %s' % str(e))
             return regions
 
         if not filtered:
