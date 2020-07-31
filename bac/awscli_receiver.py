@@ -77,8 +77,8 @@ class AwsCliReceiver(object):
             self._check_profile_validity(profile)
             vars(args)['profile'] = profile
         elif not args.profiles:
-            log.warn('No profiles specified or active.'
-                     ' Please specify or activate some profiles first.')
+            log.warning('No profiles specified or active.'
+                        ' Please specify or activate some profiles first.')
             return
 
         # check of region is provided explicitly (--region/-r)
@@ -86,8 +86,8 @@ class AwsCliReceiver(object):
             vars(args)['regions'] = set()
         elif not args.regions:
             vars(args)['regions'] = {'us-east-1'}
-            log.warn('No region specified or active,'
-                     ' using "us-east-1" instead.')
+            log.warning('No region specified or active,'
+                        ' using "us-east-1" instead.')
 
         if args.check:
             self._check(command, args)
@@ -145,17 +145,17 @@ class AwsCliReceiver(object):
         try:
             filtered = self._filter(regions, command, profile)
         except ClientError as e:
-            log.warn('Region filtering is not supported for "%s"'
-                     ' profile. This is most probably caused by'
-                     ' insufficient privileges. Continuing with all'
-                     ' active regions.' % profile)
+            log.warning('Region filtering is not supported for "%s"'
+                        ' profile. This is most probably caused by'
+                        ' insufficient privileges. Continuing with all'
+                        ' active regions.' % profile)
             log.debug('Following error received when'
                       ' filtering regions: %s' % str(e))
             return regions
 
         if not filtered:
-            log.warn('None of the provided regions are available/valid'
-                     ' for the "%s" profile.' % profile)
+            log.warning('None of the provided regions are available/valid'
+                        ' for the "%s" profile.' % profile)
         return filtered
 
     def _filter(self, regions, command, profile):
@@ -166,10 +166,10 @@ class AwsCliReceiver(object):
                 self._filter_supported_regions(enabled, service_name, session))
         discarded = regions.difference(available)
         if discarded:
-            log.warn('Some regions ignored, because they are disabled'
-                     ' for profile "%s" or not supported by "%s".'
-                     'Ignored regions: %s'
-                     % (profile, service_name, discarded))
+            log.warning('Some regions ignored, because they are disabled'
+                        ' for profile "%s" or not supported by "%s".'
+                        'Ignored regions: %s'
+                        % (profile, service_name, discarded))
         filtered = regions.intersection(available)
         return filtered
 
