@@ -1,0 +1,65 @@
+---
+# This can serve as a reference for batch job definitions syntax
+#
+# In command, define the following: "aws <service> <operation>"
+command: aws s3api list-buckets
+
+# This is where you define optional arguments.
+ 
+# This could be thought of as an M-ary tree,
+# where nodes equal to arguments and their values
+# (with arguments and their values alternating).
+ 
+# When parsing, the dictionaries are traversed recursively.
+# While traversing, store any found key-value pairs into "namespace".
+# However, if the "value" is dictionart or list, any
+# other key-value pairs are stored/checked and then s  
+ 
+# It is possible to provide "fallback" values of sorts
+# by defining value for argument at lesser level of nesting
+# and then rewriting it as willed at higher levels of nesting.
+ 
+# Values for branches can be of following types:
+# - String  - simple string value without further nesting.
+# - Integer - same as strings, no further nesting.
+# - Boolean - used when defining value-less (toggle) arguments.
+#             True includes the argument,
+#             False discards the argument from namespace,
+#             if it was provided in above levels
+#             (acts as if the argument wasn't provided).
+# - null    - used to "opt-out" of (discard) fallback value for argument.
+# - List    - should contain strings and integers
+#             which are provided as argument values.
+#             Lists can only be values of "--argument" keys.
+# - Dict    - Used to nest further, enabling the user
+#             to define additional optional arguments.
+ 
+optionals:
+  "--verify-ssl": True
+  "--some-other-arg": 123
+  "--profile":
+    aws-testing:
+      "--some-arg": some_fallback_value
+      "--region":
+        us-east-1:
+          # Excludes the "--verify-ssl" optional argument
+          # from namespace at this level of nesting
+          "--verify-ssl": null
+          "--bucket": tje-fallback-bucket
+          "--some-arg":
+            some_value:
+              "--bucket":
+                # One way of defining a list of values in YAML.
+              - tje-my-test-bucket-01
+              - tje-my-test-bucket-02
+          "--some-other-arg":
+          - 42
+          - value2
+        eu-north-1:
+          "--bucket":
+          - tje-my-test-bucket-03
+    QA:
+      "--region":
+        us-east-1:
+          # Different way of defining a list of values in YAML.
+          "--bucket": [tje-qa-bucket-01, tje-qa-bucket-02]

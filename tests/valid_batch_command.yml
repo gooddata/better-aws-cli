@@ -1,0 +1,12 @@
+---
+command: aws s3api list-buckets
+optionals:
+  '--profile':
+    uno:
+      '--region':
+        - us-east-1
+        - eu-west-1
+    dos:
+      '--region':
+        - us-east-1
+        - eu-west-1

@@ -1,0 +1,9 @@
+---
+command: aws yeah so
+stuff: lol
+optionals:
+  '--profile':
+    testing:
+      '--region':
+        - eu-west-1
+        - us-east-1
