@@ -82,9 +82,12 @@ class AwsCliReceiver(object):
                         ' Please specify or activate some profiles first.')
             return
 
+        vars(args)['region'] = None
         # check of region is provided explicitly (--region/-r)
         if any(arg in command for arg in REGION_OPTIONS):
             vars(args)['regions'] = set()
+            region = self._extract_region(command)
+            vars(args)['region'] = region
         elif not args.regions:
             vars(args)['regions'] = {'us-east-1'}
             log.warning('No region specified or active,'
@@ -113,20 +116,25 @@ class AwsCliReceiver(object):
 
     def _prepare_commands(self, command, args):
         if not args.profiles:
-            commands = self._apply_regions(command, args.regions, args.profile)
+            commands = self._apply_regions(command, args, args.profile)
             return commands
-
         commands = list()
         for profile in args.profiles:
             cmd = list(command)
             cmd.extend(['--profile', profile])
-            regional_commands = self._apply_regions(cmd, args.regions, profile)
+            regional_commands = self._apply_regions(cmd, args, profile)
             commands.extend(regional_commands)
         return commands
 
-    def _apply_regions(self, command, regions, profile):
+    def _apply_regions(self, command, args, profile):
         commands = list()
+        regions = set(args.region) if args.region else args.regions
         regions = self._filter_regions(regions, command, profile)
+
+        if args.region and regions:
+            commands.append((command, profile, args.region))
+            return commands
+
         for region in regions:
             cmd = list(command)
             cmd.extend(['--region', region])
@@ -153,11 +161,12 @@ class AwsCliReceiver(object):
                         ' insufficient privileges. Continuing with'
                         ' all active regions.' % profile
                         )
-                log.debug('Following error received when'
+                log.debug('Following error occured while'
                           ' filtering regions: %s' % str(e))
             else:
                 log.warning('An error occured while filtering available'
-                            ' regions: %s' % str(e))
+                            ' regions: %s. Continuing with all active'
+                            ' regions.' % str(e))
             return regions
 
         if not filtered:
@@ -175,7 +184,7 @@ class AwsCliReceiver(object):
         if discarded:
             log.warning('Some regions ignored, because they are disabled'
                         ' for profile "%s" or not supported by "%s".'
-                        'Ignored regions: %s'
+                        ' Ignored regions: %s'
                         % (profile, service_name, discarded))
         filtered = regions.intersection(available)
         return filtered
@@ -202,6 +211,13 @@ class AwsCliReceiver(object):
         if not profile or profile not in known_profiles:
             msg = 'Invalid profile given: "%s"' % profile
             raise InvalidAwsCliCommandError(msg)
+
+    def _extract_region(self, command):
+        iter_command = iter(command)
+        for argument in iter_command:
+            if argument in REGION_OPTIONS:
+                region = next(iter_command, None)
+        return region
 
     def _extract_service_name(self, command):
         cmd = extract_positional_args(command)
