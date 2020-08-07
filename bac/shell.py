@@ -163,15 +163,19 @@ class BAC(object):
         return toolbar.handler
 
     def _create_bac_global_parser(self):
-        # TODO -> hook these up into completer
         parser = GlobalsParser(add_help=False)
-        # TODO -> help messages and how to handle them here
-        parser.add_argument('--bac-dry-run', '-d', action='store_true',
-                            dest='dry_run')
-        parser.add_argument('--bac-no-check', '-n', action='store_false',
-                            dest='check')
-        parser.add_argument('--bac-priv-check', '-p', action='store_true',
-                            dest='priv_check')
+        parser.add_argument(
+                '--bac-dry-run', '-d', action='store_true', dest='dry_run',
+                help='Do not execute awscli command after it is checked')
+        parser.add_argument(
+                '--bac-no-check', '-n', action='store_false', dest='check',
+                help=('Do not syntax/type check awscli command prior to its'
+                      ' execution'))
+        parser.add_argument(
+                '--bac-priv-check', '-p', action='store_true',
+                dest='priv_check', help=('Attempt to check for sufficient'
+                                         'privileges before executing an'
+                                         ' awscli command'))
         return parser
 
     def _env_var_check(self):
