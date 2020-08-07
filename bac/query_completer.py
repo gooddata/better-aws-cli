@@ -13,8 +13,8 @@ from intervaltree import IntervalTree
 from prompt_toolkit.completion import Completer, Completion
 from six import text_type
 
-from bac.shape_parser import ShapeParser
 from bac.data_tables import build_command_table
+from bac.shape_parser import ShapeParser
 
 _FIND_IDENTIFIER = re.compile(r'\w*')
 COMPLEX_SIGNS = {'flatten', 'filter'}
@@ -24,8 +24,8 @@ ENCLOSURE_MATCH = {'lparen': 'rparen',
                    'lbrace': 'rbrace',
                    'lbracket': 'rbracket',
                    'filter': 'rbracket'}
-JMESPATH_FLATTEN = jmespath.compile('[] | [0]')
 IDENTIFIERS = {'unquoted_identifier', 'quoted_identifier'}
+JMESPATH_FLATTEN = jmespath.compile('[] | [0]')
 LBRACKET = ['[']
 LBRACKETS_CONTINUATION = ['?', '*', ']']
 
