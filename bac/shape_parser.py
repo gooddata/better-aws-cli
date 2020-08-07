@@ -16,10 +16,14 @@ class ShapeParser(object):
         return dummy_response
 
     def _parse_shape(self, shape):
-        # Start the recursive traversal through the output-shape.
-        handler = getattr(self, '_handle_%s' % shape.type_name,
-                          self._default_handle)
-        return handler(shape)
+        shape_type = shape.type_name
+        if shape_type == 'list':
+            return self._handle_list(shape)
+        if shape_type == 'structure':
+            return self._handle_structure(shape)
+        if shape_type == 'map':
+            return self._handle_map(shape)
+        return self._default_handle(shape)
 
     def _default_handle(self, shape):
         # Return shape type as dummy value of scalar type.
