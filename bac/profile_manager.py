@@ -39,7 +39,6 @@ class ProfileManager(object):
         :type: argparse.Namespace
         :rtype: None
         """
-        self.default = False
         self._args = args
         self.active_profiles = set()
         self.active_regions = set()
@@ -170,7 +169,6 @@ class ProfileManager(object):
         Load AWS profiles from aws credentials file and create
         a seperate aws session for each profile.
         """
-        # TODO Is special treatment for Default profile necessary?
         credentials = RawConfigParser()
 
         try:
@@ -183,7 +181,6 @@ class ProfileManager(object):
         profile_creds = credentials.sections()
         if 'default' in profile_creds:
             profile_creds.remove('default')
-            self.default = True
 
         self.sessions = dict()
         for profile in profile_creds:
@@ -194,9 +191,6 @@ class ProfileManager(object):
                 log.warn('Failed to load %s profile.'
                          ' Following error was raised: %s'
                          % (profile, str(e)))
-        if self.default:
-            self.default_session = boto3.session.Session(
-                                        profile_name='default')
 
         if not self.sessions:
             log.error('No valid profiles found in %s. Exiting BAC.'
