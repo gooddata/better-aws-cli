@@ -77,3 +77,8 @@ One of the test environments will probably fail due to the inability to locate t
 If you do not have *tox* installed, or do not wish to do so, you can tun the tests manually with *unittest*. To do so, call the following command from the project's top-level directory:
 
 	python -m unittest discover tests
+
+## License
+(C) 2020 GoodData Corporation
+
+This project is under commercial license. See [LICENSE](LICENSE).
