@@ -28,9 +28,21 @@ class ConfigParsingException(Exception):
             'An error occured while loading profiles: %s' % msg)
 
 
+class ModelLoadingError(Exception):
+    """Raised on service or operation model loading failures."""
+    pass
+
+
 class NoProfilesError(Exception):
     """Raised if no named profiles are specified."""
     pass
+
+
+class NullIntervalException(Exception):
+    """Raised on query completer context errors."""
+    def __init__(self, pos, **kwds):
+        self.pos = pos
+        super(NullIntervalException, self).__init__(**kwds)
 
 
 class TimeoutException(Exception):

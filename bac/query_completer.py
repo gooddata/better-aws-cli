@@ -14,6 +14,7 @@ from prompt_toolkit.completion import Completer, Completion
 from six import text_type
 
 from bac.data_tables import build_command_table
+from bac.errors import ModelLoadingError, NullIntervalException
 from bac.shape_parser import ShapeParser
 
 _FIND_IDENTIFIER = re.compile(r'\w*')
@@ -28,16 +29,6 @@ IDENTIFIERS = {'unquoted_identifier', 'quoted_identifier'}
 JMESPATH_FLATTEN = jmespath.compile('[] | [0]')
 LBRACKET = ['[']
 LBRACKETS_CONTINUATION = ['?', '*', ']']
-
-
-class NullIntervalException(Exception):
-    def __init__(self, pos, **kwds):
-        self.pos = pos
-        super(NullIntervalException, self).__init__(**kwds)
-
-
-class ModelLoadingError(Exception):
-    pass
 
 
 class QueryCompleter(Completer):
