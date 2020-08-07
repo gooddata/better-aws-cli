@@ -147,7 +147,8 @@ class CacheProvider(object):
         try:
             resource = cache.data[key]
         except KeyError:
-            resource = cache.get_missing_resources(session, region)
+            client = session.client(cache.service, region_name=region)
+            resource = cache.get_missing_resources(client)
             new_resource = (key, resource)
             resource = [text_type(r) for r in resource]
             cache.data[key] = resource

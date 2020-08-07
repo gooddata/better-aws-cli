@@ -51,22 +51,19 @@ class CachedResource(object):
         """Set the value of the data attribute."""
         self._data = value
 
-    def get_missing_resources(self, session, region):
+    def get_missing_resources(self, client):
         """
         Attempt to retrieve resource data from AWS API.
 
-        The desired client object is instantiated, and the method that
-        should retrieve the resource data is called. The response is
-        then parsed with the JMESPath query defined for the resource
-        into a list. This list is then finally returned.
+        The desired client object is receiver, and the method that
+        should retrieve the resource data is called upon the client.
+        The response is then parsed with the JMESPath query defined
+        for the resource into a list. This list is then returned.
 
-        :param session: A session used to initialize the Client object.
-        :type: boto3.session.Session
-        :param region: A region used to initialize the Client object.
-        :type: str/None
+        :param client: A boto3 Client used to load resource data.
+        :type: botocore.client.BaseClient
         :rtype: list
         """
-        client = session.client(self.service, region_name=region)
         try:
             response = getattr(client, self.operation)()
         except ClientError as e:
@@ -97,8 +94,9 @@ class CachedResource(object):
         with open(path, 'a') as f:
             writer = csv.writer(f, lineterminator='\n')
             for resource in resources:
-                row = list(resource[1])
-                row.insert(0, resource[0])
+                row = list()
+                row.append(resource[0])
+                row.extend(resource[1])
                 writer.writerow(row)
         log.debug('%s cache written succsessfully.'
                   % type(self).__name__)
