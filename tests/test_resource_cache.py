@@ -6,6 +6,7 @@ import os
 import unittest
 
 from botocore.exceptions import ClientError
+from testfixtures import TempDirectory
 
 from tests._utils import _import
 resources = _import('bac', 'resources')
@@ -22,8 +23,7 @@ WRITEABLE_RESOURCE = [
         ]
 
 
-class TestResource(resources.CachedResource):
-
+class FakeResource(resources.CachedResource):
     resource_type = 'test-resource'
     service = 'test'
     operation = 'list_resources'
@@ -32,13 +32,22 @@ class TestResource(resources.CachedResource):
 
 class CachedResourceTest(unittest.TestCase):
     def setUp(self):
-        self._resource = TestResource()
+        self.resource = FakeResource()
+
+    def test_data_setter(self):
+        self.assertEqual(self.resource._data, None)
+        self.resource.data = 'foo'
+        self.assertEqual(self.resource._data, 'foo')
+
+    def test_data_getter_nonexistent_data(self):
+        result = self.resource.data
+        self.assertEqual(result, dict())
 
     @mock.patch('os.path.exists', mock.Mock(return_value=True))
     def test_load_cache(self):
         m = mock.mock_open(read_data=RESOURCE_CACHE)
         with mock.patch('bac.resources.open', m):
-            data = self._resource.data
+            data = self.resource.data
             first_row = data['123456789012']
             second_row = data['098765432109']
         m.assert_called_once_with(
@@ -50,7 +59,7 @@ class CachedResourceTest(unittest.TestCase):
     def test_load_regional_cache(self):
         m = mock.mock_open(read_data=RESOURCE_CACHE_REG)
         with mock.patch('bac.resources.open', m):
-            data = self._resource.data
+            data = self.resource.data
             first_row = data['123456789012:us-east-1']
             second_row = data['098765432109:eu-west-1']
         m.assert_called_once_with(
@@ -58,54 +67,60 @@ class CachedResourceTest(unittest.TestCase):
         self.assertEqual(first_row, ['foo', 'bar', 'baz'])
         self.assertEqual(second_row, ['oof', 'rab', 'zab'])
 
-    @mock.patch('os.path.exists', mock.Mock(return_value=True))
     def test_write_cache(self):
-        m = mock.mock_open()
-        with mock.patch('bac.resources.open', m):
-            self._resource.write_cache(WRITEABLE_RESOURCE)
-        m.assert_called_once_with(
-                resources.CACHE_PATH + '/test-resource.txt', 'a')
-        handle = m()
-        results = [
-                mock.call('123456789012,foo,bar,baz\n'),
-                mock.call('098765432109,oof,rab,zab\n')
-                ]
-        handle.write.assert_has_calls(results)
+        with TempDirectory() as d:
+            path = os.path.join(d.path, 'cache')
+            filename = self.resource.resource_type + '.txt'
+            with mock.patch('bac.resources.CACHE_PATH', path):
+                self.resource.write_cache(WRITEABLE_RESOURCE)
+            with open(os.path.join(path, filename), 'r') as f:
+                results = f.read().splitlines()
+        expected = RESOURCE_CACHE.splitlines()
+        self.assertEqual(results, expected)
+
+    def populate_cache(self, path, filename):
+        os.makedirs(path)
+        with open(os.path.join(path, filename), 'w') as f:
+            f.write('000000000000,uno,dos,tres\n')
+
+    def test_write_cache_append_to_existing(self):
+        with TempDirectory() as d:
+            path = os.path.join(d.path, 'cache')
+            filename = self.resource.resource_type + '.txt'
+            self.populate_cache(path, filename)
+            with mock.patch('bac.resources.CACHE_PATH', path):
+                self.resource.write_cache(WRITEABLE_RESOURCE)
+            with open(os.path.join(path, filename), 'r') as f:
+                results = f.read().splitlines()
+        expected = ['000000000000,uno,dos,tres']
+        expected.extend(RESOURCE_CACHE.splitlines())
+        self.assertEqual(results, expected)
 
     def test_get_missing_resources(self):
-        def list_resources():
-            response = {
-                        'Resources': [
-                            {'Name': 'foo', 'Mood': 'happy'},
-                            {'Name': 'bar', 'Mood': 'sad'}
-                            ]
-                        }
-            return response
-
         fake_client = mock.Mock()
-        fake_client.list_resources = list_resources
-        fake_session = mock.Mock()
-        fake_session.client.return_value = fake_client
-        results = self._resource.get_missing_resources(fake_session, None)
-        fake_session.client.assert_called_once_with('test', region_name=None)
+        response = {
+                    'Resources': [
+                        {'Name': 'foo', 'Mood': 'happy'},
+                        {'Name': 'bar', 'Mood': 'sad'}
+                        ]
+                    }
+        fake_client.list_resources.return_value = response
+        results = self.resource.get_missing_resources(fake_client)
         self.assertEqual(results, ['foo', 'bar'])
 
-    def _prepare_session_with_exc(self, message):
+    def _prepare_client_with_exc(self, message):
         fake_client = mock.Mock()
         error = {'Error': {'Message': message}}
         fake_client.list_resources.side_effect = (
                 ClientError(error, 'some_operation'))
-        fake_session = mock.Mock()
-        fake_session.client.return_value = fake_client
-        return fake_session
+        return fake_client
 
     def test_get_missing_resources_exc_handled(self):
-        fake_session = self._prepare_session_with_exc('UnauthorizedOperation')
-        self._resource.get_missing_resources(fake_session, None)
-        fake_session.client.assert_called_once_with('test', region_name=None)
+        fake_client = self._prepare_client_with_exc('UnauthorizedOperation')
+        result = self.resource.get_missing_resources(fake_client)
+        self.assertEqual(result, list())
 
     def test_get_missing_resources_exc_raised(self):
-        fake_session = self._prepare_session_with_exc('SomeMessage')
+        fake_client = self._prepare_client_with_exc('SomeMessage')
         with self.assertRaises(ClientError):
-            self._resource.get_missing_resources(fake_session, None)
-        fake_session.client.assert_called_once_with('test', region_name=None)
+            self.resource.get_missing_resources(fake_client)

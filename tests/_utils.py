@@ -19,11 +19,14 @@ def transform(var):
     if isinstance(var, str):
         return text_type(var)
     if isinstance(var, list):
-        return [text_type(i) for i in var]
+        return [transform(i) for i in var]
+    if isinstance(var, tuple):
+        return tuple(transform(i) for i in var)
     if isinstance(var, dict):
         for k, v in var.items():
             var[k] = transform(v)
         return var
+    return var
 
 
 @contextmanager
@@ -35,3 +38,16 @@ def captured_output():
         yield sys.stdout, sys.stderr
     finally:
         sys.stdout, sys.stderr = old_out, old_err
+
+
+def check_logs(log, source, level, words):
+    # Ths is a workaround for different log messages
+    # given by Python2 and Python3
+    last_log = log.actual()[-1]
+    assert source == last_log[0]
+    assert level == last_log[1]
+    if isinstance(words, str):
+        assert words in last_log[2]
+    elif isinstance(words, list):
+        for word in words:
+            assert word in last_log[2]

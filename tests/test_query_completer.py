@@ -27,8 +27,6 @@ SHAPE = {
 
 
 class QueryCompletionTest(unittest.TestCase):
-    # TODO -> replace assertCountEqual, once the ordering
-    #         is implemented and results properly sorted
     def setUp(self):
         fake_session = mock.Mock()
         self.completer = query_completer.QueryCompleter(fake_session)

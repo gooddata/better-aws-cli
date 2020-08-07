@@ -9,7 +9,7 @@ import yaml
 
 from testfixtures import log_capture
 
-from tests._utils import _import, captured_output
+from tests._utils import _import, captured_output, check_logs
 batch = _import('bac', 'batch')
 errors = _import('bac', 'errors')
 utils = _import('bac', 'utils')
@@ -36,27 +36,19 @@ class BatchCommandTest(unittest.TestCase):
         global_args.dry_run = False
         self.globals = global_args
 
-    def _check_logs(self, log, source, level, word):
-        # This is a reaaaaly weak check. This is a workaround for
-        # different messages given by Python2 and Python3 ArgumentParser
-        last_log = log.actual()[-1]
-        self.assertEqual(source, last_log[0])
-        self.assertEqual(level, last_log[1])
-        self.assertIn(word, last_log[2])
-
     @log_capture('bac.utils', level=logging.ERROR)
     def test_handle_no_commands(self, captured_log):
         self.argv = self.argv[:1]
         with captured_output() as (out, err):
             batch.CommandBatch(self.globals, self.argv, self.checker)
-        self._check_logs(captured_log, 'bac.utils', 'ERROR', 'arguments')
+        check_logs(captured_log, 'bac.utils', 'ERROR', 'arguments')
 
     @log_capture('bac.utils', level=logging.ERROR)
     def test_handle_no_path(self, captured_log):
         self.argv[1] = '--bac-no-check'
         with captured_output() as (out, err):
             batch.CommandBatch(self.globals, self.argv, self.checker)
-        self._check_logs(captured_log, 'bac.utils', 'ERROR', 'arguments')
+        check_logs(captured_log, 'bac.utils', 'ERROR', 'arguments')
 
     def test_handle_bad_path_exc(self):
         self.argv[1] = 'some/bad/path.yml'

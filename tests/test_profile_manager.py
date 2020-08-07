@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright © 2020, GoodData(R) Corporation. All rights reserved.
+import logging
 import mock
 import unittest
 
-from tests._utils import _import, captured_output
+from six.moves import configparser
+
+from testfixtures import LogCapture, log_capture
+
+from tests._utils import _import, captured_output, check_logs
 profile_manager = _import('bac', 'profile_manager')
+errors = _import('bac', 'errors')
 
 ACC1 = '123456789012'
 ACC2 = '098765432109'
@@ -17,16 +23,25 @@ PM_ABS_IMPORT = 'bac.profile_manager.ProfileManager'
 
 
 class ProfileManagerInitTest(unittest.TestCase):
-    """
-    TODO -> Test suite for proper initialization of ProfileManager.
-            Checking if config and credentials is parsed properly
-            and how errors are handled.
-    """
-    def setUp(self):
-        pass
+    @mock.patch('bac.profile_manager.AWS_CREDENTIALS', '')
+    @log_capture(level=logging.ERROR)
+    def test_handle_missing_credentials_file(self, captured_log):
+        with self.assertRaises(errors.NoProfilesError):
+            profile_manager.ProfileManager(None)
+        check_logs(captured_log, 'bac.profile_manager', 'ERROR',
+                   ['Failed to parse user profiles',
+                    'File not found', 'Exiting BAC'])
 
-    def test_file_not_found(self):
-        pass
+    @mock.patch('six.moves.configparser.RawConfigParser.read')
+    @mock.patch('os.path.exists', mock.Mock(return_value=True))
+    def test_handle_parse_error(self, parse):
+        parse.side_effect = configparser.ParsingError(filename='foo')
+        with LogCapture() as captured_log:
+            with self.assertRaises(errors.NoProfilesError):
+                profile_manager.ProfileManager(None)
+        check_logs(captured_log, 'bac.profile_manager', 'ERROR',
+                   ['Failed to parse user profiles',
+                    'error occured while parsing', 'Exiting BAC'])
 
 
 class ProfileManagerTest(unittest.TestCase):

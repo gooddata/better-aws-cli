@@ -7,18 +7,29 @@ import mock
 from six import text_type
 
 from tests._utils import _import
-shell = _import('bac', 'shell')
 toolbar = _import('bac', 'toolbar')
 
 
+class FakeBAC(object):
+    def __init__(self, pm):
+        self._profile_manager = pm
+        self._fuzzy = True
+        self._cache_completion = True
+
+    def toggle_fuzzy(self):
+        self._fuzzy = not self._fuzzy
+
+    def toggle_cache(self):
+        self._cache_completion = not self._cache_completion
+
+
 class ToolbarTest(unittest.TestCase):
-    @mock.patch('bac.shell.BACCompleter', mock.Mock())
-    @mock.patch('bac.shell.ProfileManager')
-    def setUp(self, pm):
+    def setUp(self):
         self.fake_pm = mock.Mock()
+        self.fake_pm.active_profiles = set()
+        self.fake_pm.active_regions = set()
         self._set_active([], [])
-        pm.return_value = self.fake_pm
-        self.bac = shell.BAC(None)
+        self.bac = FakeBAC(self.fake_pm)
         self.toolbar = toolbar.Toolbar(
                 lambda: self.bac._fuzzy,
                 lambda: self.bac._cache_completion,
