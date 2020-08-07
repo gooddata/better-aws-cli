@@ -292,7 +292,7 @@ class AwsCompleter(Completer):
     def _rebuild(self, text, word):
         # Rebuild all available subcommands/arguments.
         offset = None
-        if word[0] == '-' and len(word) > 1:
+        if word[0] == '-':
             offset = len(word) - 1
         else:
             offset = len(word)
