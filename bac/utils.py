@@ -78,7 +78,6 @@ def paginate(method, jmes_filter=None, **kwargs):
                 if jmes_filter else page_iterator)
     for page in iterator:
         yield page
-        # TODO -> iterate through pages?
 
 
 def extract_positional_args(command):

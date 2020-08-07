@@ -317,13 +317,11 @@ class QueryCompleter(Completer):
                     self._disable = (True, token['end'])
         elif prev_token and prev_token['type'] in IDENTIFIERS:
             if not is_filter:
-                # TODO -> multi-select list not supported yet
                 self._disable = (True, token['end'])
             else:
                 self.context = next(iter(self.context))
 
     def _handle_rbrace(self, token, _, index):
-        # TODO -> multi-select hash not supported yet
         self._disable = True, token['end']
         return
         if not self._repeat_suggestion:
