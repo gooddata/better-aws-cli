@@ -36,7 +36,7 @@ class GlobalsParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
         """Log a message on error."""
         if message:
-            log.warn(message)
+            log.warning(message)
 
 
 def ensure_path(*args):
