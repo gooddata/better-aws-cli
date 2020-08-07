@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright © 2020, GoodData(R) Corporation. All rights reserved.
-import os
-
 from setuptools import find_packages, setup
+
+from bac import __version__
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 params = {
     'name': 'better-aws-cli',
-    'version': '%s' % os.environ.get('PACKAGE_VERSION', 'dev'),
+    'version': __version__,
     'packages': find_packages(),
     'entry_points': {
         'console_scripts': [
@@ -25,7 +25,7 @@ params = {
     'description': 'Better Aws Cli',
     'long_description': 'GoodData AWS management tool',
     'classifiers': [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
