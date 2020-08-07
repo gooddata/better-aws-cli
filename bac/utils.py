@@ -5,8 +5,9 @@ import argparse
 import logging
 import os
 
-from subprocess import Popen, PIPE
-from threading import Timer
+import subprocess32
+
+from subprocess32 import PIPE
 
 from bac.constants import CLI_OPTION_HAS_ARGS, PROFILE_OPTIONS
 from bac.errors import ArgumentParserDoneException, TimeoutException
@@ -47,26 +48,17 @@ def ensure_path(*args):
     return path
 
 
-def execute_command(command, timeout):
-    """Execute command with a timeout timer."""
-    process = Popen(command, stdout=PIPE, stderr=PIPE)
-    timer = Timer(timeout, raise_timeout_exception)
-    try:
-        timer.start()
-        (output, err) = process.communicate()
-    except TimeoutException as e:
-        process.kill()
-        raise e
-    finally:
-        timer.cancel()
-    exit_code = process.wait()
-
-    return output, err, exit_code
-
-
-def raise_timeout_exception():
-    """Raise a TimeoutException. This is used by threading.Timer."""
-    raise TimeoutException
+def execute_command(command, timeout=None):
+    """Execute command with a timeout."""
+    with subprocess32.Popen(command, stdout=PIPE, stderr=PIPE) as process:
+        try:
+            (out, err) = process.communicate(timeout=timeout)
+        except subprocess32.TimeoutExpired as e:
+            process.kill()
+            raise TimeoutException(e)
+        finally:
+            return_code = process.wait()
+    return out.decode('utf-8'), err.decode('utf-8'), return_code
 
 
 def paginate(method, jmes_filter=None, **kwargs):
