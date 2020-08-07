@@ -58,9 +58,11 @@ In order to provide users with better control over when the syntax and privilege
 
 At the moment, the auto-completion of the mentioned three custom BAC optional arguments is not supported. This will change soon.
 
-### Examples
-
 #### Batch command definitions:
+Sometimes, you might want to configure, create, delete multiple AWS resources of the same type. To that end, batch-commands might be of some use to you. A batch command is essentially an aws-cli command defined with multiple different values for its optional parameters.
+
+Batch commands need to be defined in YAML format and consist of two parts: a command section, which contains the basis of the aws-cli command to be executed, and the optionals section, which contains all of the different variations of parameter-value pairs.
+
 If you're looking for a syntax reference of the batch command definitions (`batch-command`), try looking into the "examples" directory.
 
 
