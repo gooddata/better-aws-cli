@@ -16,8 +16,6 @@ from bac.utils import LevelFormatter
 def parse_entry_point_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--account-map', help='AWS acccount name to ID mapping file')
-    parser.add_argument(
             '-v', '--verbose', action='count', default=0,
             help='Verbosity level; can be specified 0-2 times')
     return parser.parse_args()
@@ -28,7 +26,7 @@ def main():
     setup_logging(args.verbose)
 
     try:
-        BAC(args).run_cli()
+        BAC().run_cli()
     except (EOFError, KeyboardInterrupt):
         sys.exit()
     except NoProfilesError:

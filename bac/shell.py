@@ -69,11 +69,10 @@ class BAC(object):
     Initialization of the tool as well as the delegation of
     all of the "work" is taken care of within this class.
     """
-    def __init__(self, args):
-        self._args = args
+    def __init__(self):
         self._fuzzy = True
         self._cache_completion = True
-        self._profile_manager = ProfileManager(self._args)
+        self._profile_manager = ProfileManager()
         self._checker = CLIChecker(self._profile_manager.get_first_profile())
         self._aws_cli = AwsCliReceiver(self._profile_manager, self._checker)
         self._bac_global_parser = self._create_bac_global_parser()

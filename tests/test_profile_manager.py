@@ -27,7 +27,7 @@ class ProfileManagerInitTest(unittest.TestCase):
     @log_capture(level=logging.ERROR)
     def test_handle_missing_credentials_file(self, captured_log):
         with self.assertRaises(errors.NoProfilesError):
-            profile_manager.ProfileManager(None)
+            profile_manager.ProfileManager()
         check_logs(captured_log, 'bac.profile_manager', 'ERROR',
                    ['Failed to parse user profiles',
                     'File not found', 'Exiting BAC'])
@@ -38,7 +38,7 @@ class ProfileManagerInitTest(unittest.TestCase):
         parse.side_effect = configparser.ParsingError(filename='foo')
         with LogCapture() as captured_log:
             with self.assertRaises(errors.NoProfilesError):
-                profile_manager.ProfileManager(None)
+                profile_manager.ProfileManager()
         check_logs(captured_log, 'bac.profile_manager', 'ERROR',
                    ['Failed to parse user profiles',
                     'error occured while parsing', 'Exiting BAC'])
@@ -53,7 +53,7 @@ class ProfileManagerTest(unittest.TestCase):
     @mock.patch('%s._load_roles' % PM_ABS_IMPORT, mock.Mock())
     @mock.patch('%s._load_regions' % PM_ABS_IMPORT, mock.Mock())
     def prepare_pm(self):
-        pm = profile_manager.ProfileManager(None)
+        pm = profile_manager.ProfileManager()
         pm.available_regions = {REG1, REG2}
         pm.acount_names = {PROFILE1: ACC1, PROFILE2: ACC2}
         pm.sessions = {PROFILE1: mock.Mock(), PROFILE2: mock.Mock()}

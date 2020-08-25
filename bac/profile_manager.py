@@ -3,7 +3,6 @@
 # Copyright © 2020, GoodData(R) Corporation. All rights reserved.
 import boto3
 import logging
-import json
 import os
 
 from botocore.exceptions import BotoCoreError, ClientError
@@ -18,7 +17,6 @@ log = logging.getLogger(__name__)
 env = os.environ
 AWS_CREDENTIALS = os.path.expanduser(env.get(CREDS_FILE, CREDS_PATH))
 AWS_CONFIG = os.path.expanduser(env.get(CONFIG_FILE, CONFIG_PATH))
-ACCOUNT_MAP = '/etc/aws_user_list/account_mapping.json'
 
 
 class ProfileManager(object):
@@ -32,14 +30,7 @@ class ProfileManager(object):
     It is responsible for managing the state of active profiles and
     regions, which then affect the rest of BAC logic.
     """
-    def __init__(self, args):
-        """
-        :param args: A namspace that can contain so-called
-            "account map" if it was provided on tool's startup.
-        :type: argparse.Namespace
-        :rtype: None
-        """
-        self._args = args
+    def __init__(self):
         self.active_profiles = set()
         self.active_regions = set()
         self.account_names = dict()
@@ -226,18 +217,8 @@ class ProfileManager(object):
                     self.account_names[profile] = role_name
 
     def _load_account_names(self):
-        """Attempt to read account names from the account map file."""
+        """Load account/role names."""
         accounts = dict()
-        if self._args.account_map is not None:
-            try:
-                with open(self._args.account_map, 'r') as accounts_json:
-                    accounts = json.load(accounts_json)['accounts']
-            except IOError:
-                # File not found, or insufficient permissions
-                log.warn('Failed to locate or open the file'
-                         ' containing the desired account mapping.'
-                         ' Continuing without it.')
-
         for profile, session in self.sessions.items():
             account_id = session.client('sts') \
                          .get_caller_identity() \
