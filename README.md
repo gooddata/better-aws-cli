@@ -4,7 +4,7 @@
 ### Installation
 In order to install required dependencies, run following command from the project's top level directory:
 			    
-	pip install -r requirements
+	pip install -r requirements.txt
   
   #### Supported versions:
   Make sure you have at python2.7 or python3.6 or higher installed.
@@ -83,4 +83,4 @@ If you do not have *tox* installed, or do not wish to do so, you can tun the tes
 ## License
 (C) 2020 GoodData Corporation
 
-This project is under commercial license. See [LICENSE](LICENSE).
+This project is licensed under the terms of the BSD License 2.0. See [LICENSE](LICENSE).

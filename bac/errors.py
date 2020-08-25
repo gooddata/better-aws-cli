@@ -4,7 +4,7 @@
 
 
 class ArgumentParserDoneException(Exception):
-    """Raised when --help recieved or an exception occurs."""
+    """Raised when --help received or an exception occurs."""
     pass
 
 
