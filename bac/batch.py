@@ -79,7 +79,11 @@ class CommandBatch(object):
                 operation = self._checker.check(argv)
                 if self._global_args.priv_check:
                     profile = extract_profile(argv)
-                    self._checker.privilege_check(operation, profile)
+                    if profile:
+                        self._checker.privilege_check(operation, profile)
+                    else:
+                        log.warning('Cannot privilege check if no profile'
+                                    ' is specified in the command definition')
 
         if self._global_args.dry_run:
             log.debug('Dry running only, check finished.')
@@ -90,13 +94,15 @@ class CommandBatch(object):
             try:
                 out, err, exit_code = execute_command(command, timeout)
             except TimeoutException:
-                msg = ('Timeout of %s seconds reached when executing'
-                       ' following command:\n%s' % (timeout, command))
-                log.error(msg)
+                log.error('Timeout of %s seconds reached when executing'
+                          ' following command:\n%s' % (timeout, command))
+                continue
+
             if exit_code:
-                msg = ('Command "%s" ended with following non-zero exit'
-                       ' code: %s' % (command, exit_code))
+                log.warning('Command "%s" ended with following non-zero exit'
+                            ' code: %s' % (command, exit_code))
                 if err:
+                    err = err.decode('utf-8')
                     log.error('An error occured: "%s"' % text_type(err))
             if out:
                 print(out.decode('utf-8'))
