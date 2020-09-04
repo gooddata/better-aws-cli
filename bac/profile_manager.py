@@ -256,13 +256,16 @@ class ProfileManager(object):
 
     def _load_regions(self):
         self.available_regions = None
-
-        session = self.get_first_session()
-        ec2 = session.client('ec2', region_name='us-east-1')
-
-        regions = ec2.describe_regions(AllRegions=True)
-        parsed = EC2_REGIONS_JMES.search(regions)
-        self.available_regions = parsed
+        for profile, session in self.sessions.items():
+            ec2 = session.client('ec2', region_name='us-east-1')
+            try:
+                regions = ec2.describe_regions(AllRegions=True)
+            except ClientError:
+                log.debug('Failed to load regions with %s session.' % profile)
+                continue
+            parsed = EC2_REGIONS_JMES.search(regions)
+            self.available_regions = set(parsed)
+            return
 
     def _check_profiles(self, profiles):
         given = set(profiles)
