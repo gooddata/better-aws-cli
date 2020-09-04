@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright © 2020, GoodData(R) Corporation. All rights reserved.
 import logging
-import sys
 
 from awscli.argparser import MainArgParser
 from awscli.arguments import CustomArgument
@@ -134,7 +133,7 @@ class CLIChecker(object):
             action_name = command_table[command](remaining, parsed_args)
         except ArgumentParserDoneException:
             msg = ('When parsing %s arguments, an exception was raised'
-                   'with following arguments: %s ' % (command, args))
+                   ' with following arguments: %s ' % (command, args))
             raise CLICheckerSyntaxError(msg)
         operation = '%s:%s' % (command, action_name)
         return operation

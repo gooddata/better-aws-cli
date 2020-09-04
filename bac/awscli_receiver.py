@@ -216,8 +216,7 @@ class AwsCliReceiver(object):
         iter_command = iter(command)
         for argument in iter_command:
             if argument in REGION_OPTIONS:
-                region = next(iter_command, None)
-        return region
+                return next(iter_command, None)
 
     def _extract_service_name(self, command):
         cmd = extract_positional_args(command)

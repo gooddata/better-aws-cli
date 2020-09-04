@@ -92,8 +92,7 @@ def extract_profile(command):
     iter_command = iter(command)
     for argument in iter_command:
         if argument in PROFILE_OPTIONS:
-            profile = next(iter_command, None)
-    return profile
+            return next(iter_command, None)
 
 
 class LevelFormatter(logging.Formatter):

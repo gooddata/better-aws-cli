@@ -252,7 +252,7 @@ class ProfileManager(object):
         if invalid:
             log.warning('Following regions have not been found: {%s}'
                         % ', '.join(invalid))
-        return set(valid)
+        return valid
 
     def _load_regions(self):
         self.available_regions = None
