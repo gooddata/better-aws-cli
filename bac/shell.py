@@ -130,8 +130,8 @@ class BAC(object):
 
         if not remainder:
             if parsed_args:
-                log.warn('Received global optional argument(s)'
-                         ' without any additional action.')
+                log.warning('Received global optional argument(s)'
+                            ' without any additional action.')
             return
 
         choice = remainder[0]
@@ -183,7 +183,8 @@ class BAC(object):
             if var in os.environ:
                 ignored.append(var)
         if ignored:
-            log.warn('Following environmental variables have been'
-                     ' detected: %s. However, these are not supported'
-                     ' by the tool and consequently the tool will'
-                     ' behave as if they were not set.' % ignored)
+            log.warning(
+                    'Following environmental variables have been'
+                    ' detected: %s. However, these are not supported'
+                    ' by the tool and consequently the tool will'
+                    ' behave as if they were not set.' % ignored)

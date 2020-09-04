@@ -179,9 +179,9 @@ class ProfileManager(object):
                 self.sessions[profile] = (
                         boto3.session.Session(profile_name=profile))
             except BotoCoreError as e:
-                log.warn('Failed to load %s profile.'
-                         ' Following error was raised: %s'
-                         % (profile, str(e)))
+                log.warning('Failed to load %s profile.'
+                            ' Following error was raised: %s'
+                            % (profile, str(e)))
 
         if not self.sessions:
             log.error('No valid profiles found in %s. Exiting BAC.'
@@ -250,8 +250,8 @@ class ProfileManager(object):
         valid = given.intersection(set(self.available_regions))
         invalid = given.difference(valid)
         if invalid:
-            log.warn('Following regions have not been found: {%s}'
-                     % ', '.join(invalid))
+            log.warning('Following regions have not been found: {%s}'
+                        % ', '.join(invalid))
         return set(valid)
 
     def _load_regions(self):
@@ -269,8 +269,8 @@ class ProfileManager(object):
         valid = given.intersection(set(self.sessions.keys()))
         invalid = given.difference(valid)
         if invalid:
-            log.warn('Following profiles/roles have not been found: {%s}'
-                     % ', '.join(invalid))
+            log.warning('Following profiles/roles have not been found: {%s}'
+                        % ', '.join(invalid))
         return valid
 
     def _initialize_cmd_dicts(self):
