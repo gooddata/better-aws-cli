@@ -51,3 +51,8 @@ def check_logs(log, source, level, words):
     elif isinstance(words, list):
         for word in words:
             assert word in last_log[2]
+
+
+def check_items_in_result(cls, expected, actual):
+    for i in expected:
+        cls.assertIn(i, actual)

@@ -1,0 +1,11 @@
+[default]
+output=json
+
+[profile tres]
+role_arn = arn:aws:iam::123456789012:role/some_role
+role_session_name = three
+source_profile = uno
+
+[profile cuatro]
+role_arn = arn:aws:iam::098765432109:role/another_role
+source_profile = uno 

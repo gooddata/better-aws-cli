@@ -102,6 +102,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# vim
+.swp
+
 # BAC specific
 .history
 cache/

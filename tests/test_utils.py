@@ -61,7 +61,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_paginate(self):
         config = botocore.config.Config(signature_version=botocore.UNSIGNED)
-        ssm = boto3.client('ssm', config=config)
+        ssm = boto3.client('ssm', config=config, region_name='us-east-1')
         response1 = {
             'Parameters': [
                 {

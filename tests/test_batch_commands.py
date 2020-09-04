@@ -7,7 +7,8 @@ import unittest
 
 import yaml
 
-from testfixtures import log_capture
+from six import text_type
+from testfixtures import LogCapture, log_capture
 
 from tests._utils import _import, captured_output, check_logs
 batch = _import('bac', 'batch')
@@ -91,3 +92,42 @@ class BatchCommandTest(unittest.TestCase):
         with mock.patch('bac.batch.execute_command', m) as execute_command:
             batch.CommandBatch(self.globals, self.argv, self.checker)
             execute_command.assert_has_calls(results, any_order=True)
+
+    @mock.patch('bac.batch.Parser.parse', mock.Mock(return_value=['foo']))
+    @mock.patch('bac.batch.execute_command')
+    def test_handle_output(self, execute_command):
+        execute_command.return_value = (b'Some output', '', 0)
+        with captured_output() as (out, err):
+            batch.CommandBatch(self.globals, self.argv, self.checker)
+            expected = text_type('Some output\n')
+            self.assertEqual(out.getvalue(), expected)
+
+    @mock.patch('bac.batch.Parser.parse', mock.Mock(return_value=['foo']))
+    @mock.patch('bac.batch.execute_command')
+    def test_handle_timeout(self, execute_command):
+        execute_command.side_effect = errors.TimeoutException()
+        with LogCapture(level=logging.ERROR) as captured_log:
+            batch.CommandBatch(self.globals, self.argv, self.checker)
+        check_logs(captured_log, 'bac.batch', 'ERROR',
+                   ['Timeout of 30 seconds reached when'
+                    ' executing following command:\n', 'foo'])
+
+    @mock.patch('bac.batch.Parser.parse', mock.Mock(return_value=['foo']))
+    @mock.patch('bac.batch.execute_command')
+    def test_handle_exit_code(self, execute_command):
+        execute_command.return_value = ('', '', 1)
+        with LogCapture(level=logging.WARNING) as captured_log:
+            batch.CommandBatch(self.globals, self.argv, self.checker)
+        check_logs(captured_log, 'bac.batch', 'WARNING',
+                   ['Command', 'foo',
+                    'ended with following non-zero exit code:', '1'])
+
+    @mock.patch('bac.batch.Parser.parse', mock.Mock(return_value=['foo']))
+    @mock.patch('bac.batch.execute_command')
+    def test_handle_execution_error(self, execute_command):
+        err = b'error message'
+        execute_command.return_value = ('', err, 1)
+        with LogCapture(level=logging.ERROR) as captured_log:
+            batch.CommandBatch(self.globals, self.argv, self.checker)
+        check_logs(captured_log, 'bac.batch', 'ERROR',
+                   ['An error occured: ', 'error message'])

@@ -11,7 +11,7 @@ from prompt_toolkit.completion import CompleteEvent
 from six import assertCountEqual, text_type
 from testfixtures import LogCapture, log_capture
 
-from tests._utils import _import, transform, check_logs
+from tests._utils import _import, check_items_in_result, check_logs, transform
 
 bac_completer = _import('bac', 'bac_completer')
 errors = _import('bac', 'errors')
@@ -51,11 +51,7 @@ class BACCommandsTest(unittest.TestCase):
         for text, result in lst:
             c = self.get_completions(text)
             # assertCountEqual(self, c, transform(result))
-            self.check_items_in_result(result, c)
-
-    def check_items_in_result(self, expected, actual):
-        for i in expected:
-            self.assertIn(i, actual)
+            check_items_in_result(self, result, c)
 
     def test_bac_commands_all(self):
         c = self.get_completions('')
@@ -112,7 +108,7 @@ class BACCommandsTest(unittest.TestCase):
         self.completer.toggle_fuzzy()
         c = self.get_completions('aws s3api list-buckets -')
         result = transform(['--query', '--region', '--profile'])
-        self.check_items_in_result(result, c)
+        check_items_in_result(self, result, c)
 
     def test_aws_cmd_7(self):
         self.completer.toggle_fuzzy()
@@ -211,7 +207,7 @@ class BACCommandsTest(unittest.TestCase):
     def test_fuzzy_aws_cmd_7(self):
         c = self.get_completions('aws s3api list-buckets -')
         result = transform(['--query', '--region', '--profile'])
-        self.check_items_in_result(result, c)
+        check_items_in_result(self, result, c)
 
     def test_fuzzy_aws_cmd_8(self):
         c = self.get_completions('aws s3api list-buckets --qr')
