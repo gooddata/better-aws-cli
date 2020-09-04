@@ -125,7 +125,6 @@ class BACServiceOperation(ServiceOperation):
         self._add_help(operation_parser)
         parsed_args, remaining = operation_parser.parse_known_args(args)
         if remaining:
-            print('unknown argument found')
             raise UnknownArgumentError(
                 'Unknown options: %s' % ', '.join(remaining))
         return self.operational_name

@@ -4,7 +4,7 @@
 import logging
 
 from awscli.argparser import MainArgParser
-from awscli.arguments import CustomArgument
+from awscli.arguments import CustomArgument, UnknownArgumentError
 from botocore.exceptions import BotoCoreError, ClientError
 from botocore.session import Session
 
@@ -135,6 +135,9 @@ class CLIChecker(object):
             msg = ('When parsing %s arguments, an exception was raised'
                    ' with following arguments: %s ' % (command, args))
             raise CLICheckerSyntaxError(msg)
+        except UnknownArgumentError as e:
+            raise CLICheckerSyntaxError(str(e))
+
         operation = '%s:%s' % (command, action_name)
         return operation
 
