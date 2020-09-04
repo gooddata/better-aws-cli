@@ -28,6 +28,13 @@ class ConfigParsingException(Exception):
             'An error occured while loading profiles: %s' % msg)
 
 
+class InvalidShapeData(Exception):
+    """
+    Raised if query_completer receives invalid service/operation name.
+    """
+    pass
+
+
 class ModelLoadingError(Exception):
     """Raised on service or operation model loading failures."""
     pass

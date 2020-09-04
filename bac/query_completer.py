@@ -14,7 +14,8 @@ from prompt_toolkit.completion import Completer, Completion
 from six import text_type
 
 from bac.data_tables import build_command_table
-from bac.errors import ModelLoadingError, NullIntervalException
+from bac.errors import (
+        InvalidShapeData, ModelLoadingError, NullIntervalException)
 from bac.shape_parser import ShapeParser
 
 _FIND_IDENTIFIER = re.compile(r'\w*')
@@ -26,6 +27,7 @@ ENCLOSURE_MATCH = {'lparen': 'rparen',
                    'lbracket': 'rbracket',
                    'filter': 'rbracket'}
 IDENTIFIERS = {'unquoted_identifier', 'quoted_identifier'}
+STRINGS = {'unquoted_identifier', 'quoted_identifier', 'literal'}
 JMESPATH_FLATTEN = jmespath.compile('[] | [0]')
 LBRACKET = ['[']
 LBRACKETS_CONTINUATION = ['?', '*', ']']
@@ -72,7 +74,7 @@ class QueryCompleter(Completer):
 
         This is used to track the state of mutating fake API response.
         """
-        if not self._context:
+        if self._context is None:
             self.context = self._shape_dict
         return self._context
 
@@ -100,9 +102,6 @@ class QueryCompleter(Completer):
         This is based on received aws-cli service and operation
         (command, subcommand).
         """
-        if service == 's3api':
-            service = 's3'
-        operation = self.command_table[service].get_operation_name(operation)
         shape_dict = self._get_shape_dict(service, operation)
         self._shape_dict = shape_dict
         self.context = shape_dict
@@ -194,6 +193,8 @@ class QueryCompleter(Completer):
         completions = list()
         self.reset()
         for i, token in enumerate(self._tokens):
+            if self._disable[0]:
+                return
             penultimate_token = self._look_back(i, 1)
             if token['type'] in COMPLEX_SIGNS:
                 fake_lbracket = {'type': 'lbracket',
@@ -217,12 +218,12 @@ class QueryCompleter(Completer):
         return handler(token, prev_token, index)
 
     def _handle_lbracket(self, token, prev_token, index):
-        if not self._repeat_suggestion:
-            self._switch_into_next_implicit_context(token)
         if not prev_token:
             if isinstance(self.context, dict):
                 return self.context.keys()
             return
+        if not self._repeat_suggestion:
+            self._switch_into_next_implicit_context(token)
 
         if (prev_token['type'] in IDENTIFIERS and
                 isinstance(self.context, dict)):
@@ -237,6 +238,8 @@ class QueryCompleter(Completer):
         if prev_token['type'] == 'dot':
             if isinstance(self.context, dict):
                 return self.context.keys()
+            self._disable = (True, token['end'])
+            return
 
         if isinstance(self.context, list):
             return LBRACKETS_CONTINUATION
@@ -304,23 +307,19 @@ class QueryCompleter(Completer):
             if apu_token and apu_token['type'] == 'lbracket':
                 if isinstance(self.context, list):
                     self.context = next(iter(self.context))
-                else:
-                    self._disable = (True, token['end'])
-        elif prev_token and prev_token['type'] in IDENTIFIERS:
+            else:
+                self._disable = (True, token['end'])
+        elif prev_token and prev_token['type'] in STRINGS:
             if not is_filter:
                 self._disable = (True, token['end'])
-            else:
-                self.context = next(iter(self.context))
 
     def _handle_rbrace(self, token, _, index):
         self._disable = True, token['end']
         return
-        if not self._repeat_suggestion:
-            self._switch_from_prev_implicit_context(token)
-            self._colon = False
 
-    def _handle_dot(self, _, prev_token, index):
+    def _handle_dot(self, token, prev_token, index):
         if not prev_token:
+            self._disable = (True, token['end'])
             return
         # Applying subexpression to a JSON object
         if isinstance(self.context, dict):
@@ -336,7 +335,7 @@ class QueryCompleter(Completer):
                 new_context = self.context
             # Nothing else is applicable to JSON objects
             else:
-                new_context = None
+                new_context = dict()
             self.context = new_context
             if isinstance(self.context, dict):
                 return self.context.keys()
@@ -346,7 +345,9 @@ class QueryCompleter(Completer):
                 self.context = next(iter(self.context))
                 if isinstance(self.context, dict):
                     return self.context.keys()
-            return LBRACKET
+            if prev_token['type'] == 'rbracket':
+                return LBRACKET
+            self._disable = (True, token['end'])
 
     def _handle_pipe(self, token, _, index):
         if not self._repeat_suggestion:
@@ -368,9 +369,9 @@ class QueryCompleter(Completer):
             lhs = self._remove_filters(lhs, tokens)
             try:
                 result = jmespath.search(lhs, context)
-                self.context = result
             except jmespath.exceptions.JMESPathError:
                 return
+            self.context = result
 
         if isinstance(self.context, list):
             return LBRACKET
@@ -399,8 +400,6 @@ class QueryCompleter(Completer):
                 value = self.context.get(identifier, None)
                 if isinstance(value, list):
                     return LBRACKET
-                if self._repeat_suggestion:
-                    return
                 completions = [c
                                for c
                                in self.context.keys()
@@ -408,7 +407,7 @@ class QueryCompleter(Completer):
                 return completions
 
     def _switch_into_next_implicit_context(self, token):
-        old_end = token['start']
+        old_end = token['end']
         if self._start == old_end:
             raise NullIntervalException(token['end'])
         self._implicit_context = copy.deepcopy(self.context)
@@ -465,14 +464,28 @@ class QueryCompleter(Completer):
 
     def _get_shape_dict(self, service, operation):
         try:
+            service, operation = (
+                    self._get_transformed_names(service, operation))
+        except InvalidShapeData:
+            return None
+
+        try:
             return self._parse_shape(service, operation)
         except ModelLoadingError:
             return None
 
-    def _parse_shape(self, service, operation):
-        if not (service and operation):
-            return None
+    def _get_transformed_names(self, service, operation):
+        if service == 's3api':
+            service = 's3'
+        service_data = self.command_table.get(service, None)
+        if not service_data:
+            raise InvalidShapeData()
+        operation = service_data.get_operation_name(operation)
+        if not operation:
+            raise InvalidShapeData()
+        return service, operation
 
+    def _parse_shape(self, service, operation):
         if service != self._service:
             self._service_model = self._load_service_model(service)
             operation_model = (
