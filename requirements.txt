@@ -1,0 +1,6 @@
+awscli~=1.18.107
+boto3~=1.14.30
+intervaltree~=3.0.2
+prompt-toolkit~=2.0.9
+six~=1.15.0
+subprocess32~=3.5.4

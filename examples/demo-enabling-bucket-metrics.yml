@@ -1,0 +1,12 @@
+command: aws s3api put-bucket-metrics-configuration
+optionals:
+  "--id": "EntireBucket"
+  "--metrics-configuration": '{"Id":"EntireBucket"}'
+  "--profile":
+    aws-testing:
+      "--bucket":
+        - tje-demo-bucket-testing-01
+        - tje-demo-bucket-testing-02
+        - tje-demo-bucket-testing-03
+    DEV:
+      "--bucket": tje-demo-bucket-dev
