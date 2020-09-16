@@ -1,5 +1,5 @@
 
-## Better Aws Cli
+## Better AWS Cli
 
 ### Installation
 In order to install required dependencies, run following command from the project's top level directory:
@@ -10,7 +10,7 @@ In order to install required dependencies, run following command from the projec
   Make sure you have at python2.7 or python3.6 or higher installed.
 
 
-### Running the *Better Aws Cli*
+### Running the *Better AWS Cli*
 Each AWS account that you wish to manage with the tool must have their respective authentication credentials sourced in the shared AWS *credentials* file (default location of this file is` ~/.aws/credentials`).
 
 If you wish to use the IAM Role assumption to manage the accounts, you must set up your AWS *configuration* file accordingly (this file's default location is `~/.aws/config`).
@@ -83,4 +83,4 @@ If you do not have *tox* installed, or do not wish to do so, you can tun the tes
 ## License
 (C) 2020 GoodData Corporation
 
-This project is licensed under the terms of the BSD License 2.0. See [LICENSE](LICENSE).
+This project is licensed under the terms of the BSD License 2.0. See [LICENSE](LICENSE.txt).
