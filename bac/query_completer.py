@@ -379,10 +379,13 @@ class QueryCompleter(Completer):
             return self.context.keys()
 
     def _handle_others(self, token, _, index):
-        if (token['type'] == 'comma' and
-                self._stack and self._stack[-1][0] == 'lbrace'):
-            self._colon = False
-            return
+        if token['type'] == 'comma':
+            if self._stack and self._stack[-1][0] == 'lbrace':
+                self._colon = False
+                return
+            if not self._stack:
+                self._disable = (True, token['end'])
+                return
 
         # Drop to fallback context on these... (&& || , > < etc...)
         if token['type'] in CONTEXT_RESET_SIGNS:
