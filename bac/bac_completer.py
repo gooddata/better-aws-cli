@@ -181,7 +181,7 @@ class BACCompleter(Completer):
                 yield c
             return
 
-        if self._query_context:
+        if self._query_context and '--query' in words:
             quote, start = self._query_context
 
             if (document.cursor_position <= start):
@@ -227,6 +227,9 @@ class BACCompleter(Completer):
                     Document(text[start:]), completion_event):
                 yield c
             return
+
+        elif self._query_context:
+                self._query_context = None
 
         # autocomplete aws-cli commands
         for c in self._aws_completer.get_completions(

@@ -7,10 +7,10 @@ In order to install required dependencies, run following command from the projec
 	pip install -r requirements.txt
   
   #### Supported versions:
-  Make sure you have at python2.7 or python3.6 or higher installed.
+  Make sure you have python2.7 or python3.6 or higher installed.
 
 
-### Running the *Better AWS Cli*
+### Running the *Better AWS Cli*  (*BAC*)
 Each AWS account that you wish to manage with the tool must have their respective authentication credentials sourced in the shared AWS *credentials* file (default location of this file is` ~/.aws/credentials`).
 
 If you wish to use the IAM Role assumption to manage the accounts, you must set up your AWS *configuration* file accordingly (this file's default location is `~/.aws/config`).
@@ -32,7 +32,7 @@ The basic intended workflow is as follows:
 
 #### Managing profiles and regions
 
-Several commands have been defined to help manage on which profiles and regions the called aws-cli commands get executed on. To manage profiles, you can use:
+When working with the *BAC*, you can decide on which named profiles and regions the called aws-cli commands get executed. Such profiles and regions are referred to as *active profiles* and *active regions*. Several *BAC*-specific commands have been defined to help manage this. To manage profiles, you can use:
 
  - `include-profiles [profiles]` - includes all provided `profiles` to the set of currently active profiles.
 	
@@ -42,6 +42,10 @@ Several commands have been defined to help manage on which profiles and regions 
  - `list-active-profiles` - lists all currently active profiles.
  
  If `--profile <profile>` is provided to the *aws-cli* command, the set of currently active profiles is disregarded, and the explicitly provided `profile` is used instead.
+
+To include, exclude or switch onto all available profiles, you can use the wildcard (*\**) expression like this:
+
+	~> include-profiles *
 
 The same rules apply to active region management, with one exception: If no region is active (i.e., the set of currently active regions is empty), `--region "us-east-1"`  is used as the default region.
 
@@ -84,3 +88,5 @@ If you do not have *tox* installed, or do not wish to do so, you can tun the tes
 (C) 2020 GoodData Corporation
 
 This project is licensed under the terms of the BSD License 2.0. See [LICENSE](LICENSE.txt).
+
+

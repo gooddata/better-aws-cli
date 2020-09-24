@@ -154,7 +154,8 @@ class AwsCliReceiver(object):
         try:
             filtered = self._filter(regions, command, profile)
         except ClientError as e:
-            if 'UnauthorizedOperation' in str(e):
+            if ('UnauthorizedOperation' in str(e)
+                or 'AccessDeniedException' in str(e)):
                 log.warning(
                         'Region filtering is not supported for "%s"'
                         ' profile. This is most probably caused by'

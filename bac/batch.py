@@ -102,10 +102,9 @@ class CommandBatch(object):
                 log.warning('Command "%s" ended with following non-zero exit'
                             ' code: %s' % (command, exit_code))
                 if err:
-                    err = err.decode('utf-8')
                     log.error('An error occured: "%s"' % text_type(err))
             if out:
-                print(out.decode('utf-8'))
+                print(out)
 
     def _load_batch_command(self, path):
         path = os.path.expanduser(path)
