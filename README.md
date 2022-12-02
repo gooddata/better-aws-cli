@@ -1,4 +1,6 @@
 
+## :warning: This repository has been deprecated and the development of Better AWS Cli has been stopped. Feel free to apply in case you want to take over the ownership. :warning:
+
 ## Better AWS Cli
 
 ### Installation
